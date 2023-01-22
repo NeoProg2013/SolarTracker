@@ -18,6 +18,8 @@
 #define APB1_CLOCK_FREQUENCY                (8000000)
 #define APB2_CLOCK_FREQUENCY                (8000000)
 
+#define ADC_IRQ_PRIORITY                    (0)
+
 
 
 #define GPIO_MODE_INPUT                     (0x00)

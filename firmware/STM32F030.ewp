@@ -2108,6 +2108,12 @@
         <group>
             <name>drivers</name>
             <file>
+                <name>$PROJ_DIR$\src\drivers\adc.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\src\drivers\adc.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\src\drivers\systimer.c</name>
             </file>
             <file>

@@ -4,8 +4,15 @@
 //  ***************************************************************************
 #include "project_base.h"
 #include "systimer.h"
+#include "adc.h"
 
 static void system_init(void);
+
+// 0 - Left Bottom
+// 1 - Right Bottom
+// 2 - Right top
+// 3 - Left top
+// 4 - VIN
 
 
 
@@ -18,8 +25,8 @@ int main() {
     system_init();
     systimer_init();
     
-    //gpio_set_mode(GPIOA, 9, GPIO_MODE_INPUT);
-    //gpio_set_pull(GPIOA, 9, GPIO_PULL_UP);
+    adc_init();
+    adc_start();
     
     gpio_reset(GPIOA, 0);
     gpio_set_mode(GPIOA, 0, GPIO_MODE_INPUT);
@@ -43,8 +50,6 @@ int main() {
     gpio_set_mode(GPIOA, 7, GPIO_MODE_OUTPUT);
     gpio_set_output_type(GPIOA, 7, GPIO_TYPE_PUSH_PULL);
     
-    
-    
     gpio_reset(GPIOA, 6);
     gpio_set_mode(GPIOA, 6, GPIO_MODE_OUTPUT);
     gpio_set_output_type(GPIOA, 6, GPIO_TYPE_PUSH_PULL);
@@ -58,11 +63,61 @@ int main() {
     uint64_t start_timeout = get_time_ms();
     while (true) {
         
-        gpio_reset(GPIOB, 1); // M1
-        gpio_reset(GPIOA, 7); // M1
-        gpio_reset(GPIOA, 6); // M2
-        gpio_reset(GPIOA, 5); // M2
-        delay_ms(100);
+        int32_t diff = adc_read(0) - adc_read(3);
+        if (abs(diff) > 100) {
+            if (diff > 0) {
+                gpio_reset(GPIOB, 1); // M1
+                gpio_set(GPIOA, 7);   // M1
+            } else {
+                gpio_set(GPIOB, 1);   // M1
+                gpio_reset(GPIOA, 7); // M1
+            }
+        } else {
+            gpio_reset(GPIOB, 1); // M1
+            gpio_reset(GPIOA, 7); // M1
+        }
+        
+        
+        /*diff = adc_read(2) - adc_read(3);
+        if (abs(diff) > 400) {
+            if (diff > 0) {
+                gpio_set(GPIOA, 6);   // M2
+                gpio_reset(GPIOA, 5); // M2
+            } else {
+                gpio_reset(GPIOA, 6); // M2
+                gpio_set(GPIOA, 5);   // M2
+            }
+        } else {
+            gpio_reset(GPIOA, 6); // M2
+            gpio_reset(GPIOA, 5); // M2
+        }*/
+        
+        diff = adc_read(0) - adc_read(1);
+        if (abs(diff) > 100) {
+            if (diff > 0) {
+                gpio_set(GPIOA, 6);   // M2
+                gpio_reset(GPIOA, 5); // M2
+            } else {
+                gpio_reset(GPIOA, 6); // M2
+                gpio_set(GPIOA, 5);   // M2
+            }
+        } else {
+            gpio_reset(GPIOA, 6); // M2
+            gpio_reset(GPIOA, 5); // M2
+        }
+        
+        
+        
+            
+            
+        
+        
+        //gpio_reset(GPIOA, 6); // M2
+            //gpio_reset(GPIOA, 5); // M2
+        
+        
+        
+        /*delay_ms(100);
         
         gpio_set(GPIOB, 1);   // M1
         gpio_reset(GPIOA, 7); // M1
@@ -82,7 +137,7 @@ int main() {
         gpio_set(GPIOA, 5);   // M2
         delay_ms(10000);
         
-        asm("nop");
+        asm("nop");*/
     }
 }
 
@@ -119,5 +174,8 @@ static void system_init(void) {
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN;
     
     // Enable TIM14 clocks
-    RCC->APB1ENR |= RCC_APB1ENR_TIM14EN;
+    //RCC->APB1ENR |= RCC_APB1ENR_TIM14EN;
+    
+    // Enable ADC clocks
+    RCC->APB2ENR |= RCC_APB2ENR_ADCEN;
 }
