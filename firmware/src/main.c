@@ -14,6 +14,14 @@ static void system_init(void);
 // 3 - Left top
 // 4 - VIN
 
+// 861 -- base line
+// 0 - -66
+// 1 - -270
+// 2 - 203
+// 3 - 131
+
+
+static float ch[4] = {0};
 
 
 /// ***************************************************************************
@@ -27,6 +35,12 @@ int main() {
     
     adc_init();
     adc_start();
+    delay_ms(100);
+    
+    ch[0] = adc_read(0) + -66;
+    ch[1] = adc_read(1) + -270;
+    ch[2] = adc_read(2) + 203;
+    ch[3] = adc_read(3) + 131;
     
     gpio_reset(GPIOA, 0);
     gpio_set_mode(GPIOA, 0, GPIO_MODE_INPUT);
@@ -58,12 +72,18 @@ int main() {
     gpio_set_mode(GPIOA, 5, GPIO_MODE_OUTPUT);
     gpio_set_output_type(GPIOA, 5, GPIO_TYPE_PUSH_PULL);
     
-    delay_ms(1000);
-    
-    uint64_t start_timeout = get_time_ms();
+
     while (true) {
         
-        int32_t diff = adc_read(0) - adc_read(3);
+        ch[0] = ch[0] * 0.99f + (adc_read(0) + -66 ) * 0.01f;
+        ch[1] = ch[1] * 0.99f + (adc_read(1) + -270) * 0.01f;
+        ch[2] = ch[2] * 0.99f + (adc_read(2) + 203 ) * 0.01f;
+        ch[3] = ch[3] * 0.99f + (adc_read(3) + 131 ) * 0.01f;
+ 
+        
+        int32_t acc_top = roundf(ch[2] + ch[3]);
+        int32_t acc_bottom = roundf(ch[0] + ch[1]);
+        int32_t diff = acc_top - acc_bottom;
         if (abs(diff) > 100) {
             if (diff > 0) {
                 gpio_reset(GPIOB, 1); // M1
@@ -75,6 +95,24 @@ int main() {
         } else {
             gpio_reset(GPIOB, 1); // M1
             gpio_reset(GPIOA, 7); // M1
+        }
+        
+        
+        
+        int32_t acc_left = roundf(ch[0] + ch[3]);
+        int32_t acc_right = roundf(ch[1] + ch[2]);
+        diff = acc_left - acc_right;
+        if (abs(diff) > 100) {
+            if (diff > 0) {
+                gpio_set(GPIOA, 6);   // M2
+                gpio_reset(GPIOA, 5); // M2
+            } else {
+                gpio_reset(GPIOA, 6); // M2
+                gpio_set(GPIOA, 5);   // M2
+            }
+        } else {
+            gpio_reset(GPIOA, 6); // M2
+            gpio_reset(GPIOA, 5); // M2
         }
         
         
@@ -92,7 +130,7 @@ int main() {
             gpio_reset(GPIOA, 5); // M2
         }*/
         
-        diff = adc_read(0) - adc_read(1);
+        /*diff = ch(0) - ch(1);
         if (abs(diff) > 100) {
             if (diff > 0) {
                 gpio_set(GPIOA, 6);   // M2
@@ -104,7 +142,7 @@ int main() {
         } else {
             gpio_reset(GPIOA, 6); // M2
             gpio_reset(GPIOA, 5); // M2
-        }
+        }*/
         
         
         

@@ -74,7 +74,7 @@ void adc_start(void) {
 
 /// ***************************************************************************
 /// @brief  Get conversion result
-/// @param  channel: channel index
+/// @param  ch: channel index
 /// @return conversion result
 /// ***************************************************************************
 uint32_t adc_read(uint32_t ch) {
